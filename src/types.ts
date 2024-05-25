@@ -38,8 +38,8 @@ export type OnnxRunResults = (Float32Array | string[] | Uint8Array | Int8Array |
  * Service class for interacting with an ONNX model.
  */
 export interface OnnxService extends AssetService {
-    /** Is the model in the process of loading. */
-    modelLoading: boolean
+    /** Returns a promise that resolves after the model is done loading (or immediately if no loading is underway). */
+    modelLoading: Promise<boolean>
     /** Is there a run in progress. */
     runInProgress: boolean
     /** Current run progress as a fraction. */

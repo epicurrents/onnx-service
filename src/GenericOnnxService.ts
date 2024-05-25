@@ -60,7 +60,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
         if (!this._waiters.get('load')) {
             return Promise.resolve(true)
         }
-        return this.awaitAction('load')
+        return this.awaitAction('load') as Promise<boolean>
     }
 
     get modelState () {
