@@ -11,7 +11,6 @@ import { type WorkerMessage } from '@epicurrents/core/dist/types'
 import { type OnnxRunProgress, type OnnxRunResponse } from './types'
 import { sleep, validateCommissionProps } from '@epicurrents/core/dist/util'
 
-// @ts-ignore
 ort.env.wasm.wasmPaths = typeof __webpack_public_path__ === 'string' ? __webpack_public_path__ : ''
 
 const SCOPE = "onnx.worker"
@@ -180,8 +179,8 @@ const loadModel = async (path: string, dimensions: number[]) => {
         DIMENSIONS.splice(0, DIMENSIONS.length, ...dimensions)
         Log.debug(`ONNX model loaded, input names for model are: ${RUN.session.inputNames.join(', ')}.`, SCOPE)
         return true
-    } catch (e: any) {
-        Log.error(`Failed to load ONNX model.`, SCOPE, e)
+    } catch (e: unknown) {
+        Log.error(`Failed to load ONNX model.`, SCOPE, e as Error)
         return false
     }
 }
@@ -247,8 +246,8 @@ const run = async (samples: Float32Array[]) => {
                 const result = await RUN.session.run({ [INPUT]: data })
                 RUN.results[i].value = result
                 RUN.results[i].success = true
-            } catch (e: any) {
-                Log.error(`Running inference on the given sample #${i} failed.`, SCOPE, e)
+            } catch (e: unknown) {
+                Log.error(`Running inference on the given sample #${i} failed.`, SCOPE, e as Error)
                 RUN.results[i].success = false
             }
             // Report progress as the number of samples that habe been processed.

@@ -9,6 +9,7 @@ import { GenericService } from '@epicurrents/core'
 import { type SetupWorkerResponse, type WorkerResponse } from '@epicurrents/core/dist/types/service'
 import { Log } from 'scoped-ts-log'
 import {
+    type LoadingState,
     type LoadModelResponse,
     type OnnxRunResponse,
     type OnnxRunResults,
@@ -17,16 +18,14 @@ import {
 
 const SCOPE = 'OnnxService'
 
-type LoadingState = 'error' | 'loaded' | 'loading' | 'not_loaded'
-
 export default abstract class GenericOnnxService extends GenericService implements OnnxService {
     protected _callbacks: ((...results: unknown[]) => unknown)[] = []
+    protected _isRunInProgress = false
     protected _modelState: LoadingState = 'not_loaded'
     protected _progress = {
         complete: 0,
         target: 0,
     }
-    protected _runInProgress = false
 
     constructor (config?: { rootPath?: string }) {
         if (!window.__EPICURRENTS__?.RUNTIME) {
@@ -49,14 +48,25 @@ export default abstract class GenericOnnxService extends GenericService implemen
         this.setupWorker(config)
     }
 
-    get initialSetup () {
+    get initialSetupPromise () {
         if (!this._waiters.get('init')) {
             return Promise.resolve(true)
         }
-        return this.awaitAction('init')
+        return this.awaitAction('init') as Promise<boolean>
     }
 
-    get modelLoading () {
+    get isRunInProgress () {
+        return this._isRunInProgress
+    }
+    protected set isRunInProgress (value: boolean) {
+        if (value === this._isRunInProgress) {
+            return
+        }
+        this._isRunInProgress = value
+        this.onPropertyUpdate('run-in-progress', value)
+    }
+
+    get modelLoadedPromise () {
         if (!this._waiters.get('load')) {
             return Promise.resolve(true)
         }
@@ -72,26 +82,15 @@ export default abstract class GenericOnnxService extends GenericService implemen
         this.onPropertyUpdate('model-state', value, prevState)
     }
 
-    get runInProgress () {
-        return this._runInProgress
-    }
-    protected set runInProgress (value: boolean) {
-        if (value === this._runInProgress) {
-            return
-        }
-        this._runInProgress = value
-        this.onPropertyUpdate('run-in-progress', value)
-    }
-
     get runProgress () {
         return this._progress.target ? this._progress.complete/this._progress.target : 0
     }
 
     async cancelRun () {
-        if (!this._runInProgress) {
+        if (!this._isRunInProgress) {
             return false
         }
-        this.runInProgress = false
+        this.isRunInProgress = false
         this._notifyWaiters('run', false)
         Log.debug(`Cancelling the ongoing ONNX run.`, SCOPE)
         const commission = this._commissionWorker('cancel')
@@ -153,7 +152,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
             // Notify possible waiters that loading is done.
             this._notifyWaiters('load', true)
             return response
-        } catch (e: any) {
+        } catch (e: unknown) {
             this.modelState = 'error'
             this._notifyWaiters('load', false)
             return false
@@ -178,18 +177,18 @@ export default abstract class GenericOnnxService extends GenericService implemen
             // Notify possible waiters that setup is done.
             this._notifyWaiters('init', true)
             return response
-        } catch (e: any) {
+        } catch (e: unknown) {
             this._notifyWaiters('init', false)
             return false
         }
     }
 
     async pauseRun (duration?: number) {
-        if (!this._runInProgress) {
+        if (!this._isRunInProgress) {
             return false
         }
         this._initWaiters('pause')
-        this.runInProgress = false
+        this.isRunInProgress = false
         Log.debug(`Pausing the ONNX run${ duration ? ` for ${duration} ms` : ''}.`, SCOPE)
         if (duration) {
             setTimeout(() => {
@@ -202,7 +201,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
     }
 
     resetProgress () {
-        if (this._runInProgress) {
+        if (this._isRunInProgress) {
             this.cancelRun()
         }
         this._progress.complete = 0
@@ -219,10 +218,10 @@ export default abstract class GenericOnnxService extends GenericService implemen
     }
 
     async resumeRun () {
-        if (this._runInProgress) {
+        if (this._isRunInProgress) {
             return false
         }
-        this.runInProgress = true
+        this.isRunInProgress = true
         this._notifyWaiters('pause', true)
         Log.debug(`Resuming the ONNX run.`, SCOPE)
         const commission = this._commissionWorker('resume')
@@ -231,12 +230,12 @@ export default abstract class GenericOnnxService extends GenericService implemen
     }
 
     async run (samples: Float32Array[]) {
-        if (this._runInProgress) {
+        if (this._isRunInProgress) {
             Log.error(`There is already a run in progress.`, SCOPE)
             return []
         }
         if (this._modelState === 'loading') {
-            await this.modelLoading
+            await this.modelLoadedPromise
         } else if (this._modelState !== 'loaded') {
             Log.error(`Cannot run inference before a model has been successfully loaded.`, SCOPE)
             return []
@@ -247,7 +246,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
         }
         this.resetProgress()
         this._progress.target = samples.length
-        this.runInProgress = true
+        this.isRunInProgress = true
         // Measure time for debug.
         const startTime = Date.now()
         Log.debug(`Starting a new ONNX run.`, SCOPE)
@@ -259,7 +258,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
             ])
         )
         const response = await commission.promise as OnnxRunResults
-        this.runInProgress = false
+        this.isRunInProgress = false
         this._notifyWaiters('run', true)
         Log.debug(`ONNX run complete in ${((Date.now() - startTime)/1000).toFixed(1)} seconds.`, SCOPE)
         return response
