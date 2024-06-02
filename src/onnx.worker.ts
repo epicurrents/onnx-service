@@ -38,10 +38,13 @@ onmessage = async (message: WorkerMessage) => {
     const action = message.data.action
     if (action === 'load-model') {
         const data = validateCommissionProps(
-            message.data,
+            message.data as WorkerMessage['data'] & {
+                dimensions: number[]
+                path: string
+            },
             {
-                path: 'String',
                 dimensions: 'Array',
+                path: 'String',
             }
         )
         if (!data) {
@@ -110,7 +113,7 @@ onmessage = async (message: WorkerMessage) => {
         }
     } else if (action === 'run') {
         const data = validateCommissionProps(
-            message.data,
+            message.data as WorkerMessage['data'] & { samples: Float32Array[] },
             {
                 samples: 'Array',
             }
@@ -136,7 +139,7 @@ onmessage = async (message: WorkerMessage) => {
         }
     } else if (action === 'setup-worker') {
         const data = validateCommissionProps(
-            message.data,
+            message.data as WorkerMessage['data'] & { path: string },
             {
                 path: 'String',
             }
