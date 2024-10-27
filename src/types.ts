@@ -6,7 +6,7 @@
  */
 
 import { AssetService } from "@epicurrents/core/dist/types"
-import { SetupWorkerResponse, WorkerCommissionResponse } from "@epicurrents/core/dist/types/service"
+import { SetupWorkerResponse, WorkerResponse } from "@epicurrents/core/dist/types/service"
 
 /**
  * Model loading state.
@@ -28,7 +28,7 @@ export type OnnxRunProgress = {
     complete: number
     success: (boolean|null)[]
 }
-export type OnnxRunResponse = WorkerCommissionResponse & {
+export type OnnxRunResponse = WorkerResponse['data'] & {
     /**
      * Array on inference run results for each of the input samples.
      */
