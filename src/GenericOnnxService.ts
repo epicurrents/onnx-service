@@ -7,7 +7,7 @@
 
 import { GenericService } from '@epicurrents/core'
 import { type SetupWorkerResponse, type WorkerResponse } from '@epicurrents/core/dist/types/service'
-import { Log } from 'scoped-ts-log'
+import { Log } from 'scoped-event-log'
 import {
     type LoadingState,
     type LoadModelResponse,
@@ -62,8 +62,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
         if (value === this._isRunInProgress) {
             return
         }
-        this._isRunInProgress = value
-        this.onPropertyUpdate('run-in-progress', value)
+        this._setPropertyValue('isRunInProgress', value)
     }
 
     get modelLoadedPromise () {
@@ -77,9 +76,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
         return this._modelState
     }
     protected set modelState (value: LoadingState) {
-        const prevState = this._modelState
-        this._modelState = value
-        this.onPropertyUpdate('model-state', value, prevState)
+        this._setPropertyValue('modelState', value)
     }
 
     get runProgress () {
@@ -204,6 +201,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
         if (this._isRunInProgress) {
             this.cancelRun()
         }
+        const prevState = this.runProgress
         this._progress.complete = 0
         this._progress.target = 0
         for (const upd of this._actionWatchers) {
@@ -214,7 +212,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
                 )
             }
         }
-        this.onPropertyUpdate('progress')
+        this.dispatchPropertyChangeEvent('runProgress', this.runProgress, prevState)
     }
 
     async resumeRun () {

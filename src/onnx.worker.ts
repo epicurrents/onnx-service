@@ -6,7 +6,7 @@
  */
 
 import * as ort from 'onnxruntime-web'
-import { Log } from 'scoped-ts-log'
+import { Log } from 'scoped-event-log'
 import { type WorkerMessage } from '@epicurrents/core/dist/types'
 import { type OnnxRunProgress, type OnnxRunResponse } from './types'
 import { sleep, validateCommissionProps } from '@epicurrents/core/dist/util'
