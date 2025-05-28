@@ -11,9 +11,15 @@
  */
 type EpicurrentsGlobal = {
     /**
-     * Runtime state manager of the initiated application (must be initiated before creating resources).
+     * Master event bus for broadcasting application events.
      */
-    RUNTIME: import('@epicurrents/core/dist/types/application').StateManager
+    EVENT_BUS: import('#events/types').ScopedEventBus | null
+    /**
+     * Runtime state manager of the initiated application (null before initiation).
+     * @remarks
+     * This property is required by the core application.
+     */
+    RUNTIME: import('@epicurrents/core/dist/types/application').StateManager | null
 }
 declare global {
     /** Path where WebPack serves its public assets (js) from. */
