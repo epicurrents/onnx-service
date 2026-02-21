@@ -31,8 +31,8 @@ export default abstract class GenericOnnxService extends GenericService implemen
         if (!window.__EPICURRENTS__?.RUNTIME) {
             Log.error(`Reference to core application runtime was not found.`, SCOPE)
         }
-        const overrideWorker = window.__EPICURRENTS__?.RUNTIME?.WORKERS.get('onnx')
-        const worker = overrideWorker ? overrideWorker() : new Worker(
+        const overrideWorker = window.__EPICURRENTS__?.RUNTIME?.getWorkerOverride('onnx')
+        const worker = overrideWorker ? overrideWorker : new Worker(
             new URL(
                 /* webpackChunkName: 'onnx.worker' */
                 `./onnx.worker`,
