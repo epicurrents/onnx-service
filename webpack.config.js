@@ -2,19 +2,26 @@ const path = require('path')
 const TerserPlugin = require('terser-webpack-plugin')
 require('dotenv').config()
 
-const ASSET_PATH = process.env.ASSET_PATH || '/pyodide-service/'
+const ASSET_PATH = process.env.ASSET_PATH || '/onnx-service/'
 
 module.exports = {
     mode: 'production',
     entry: {
-        'pyodide-service': { import: path.join(__dirname, 'src', 'index.ts') },
+        'onnx-service': { import: path.join(__dirname, 'src', 'index.ts') },
     },
     module: {
         rules: [
             {
                 test: /\.tsx?$/,
                 exclude: '/node_modules/',
-                use: 'ts-loader',
+                use: {
+                    loader: 'ts-loader',
+                    options: {
+                        // Suppress declaration-file emit during the webpack pass.
+                        // Full type-checking and .d.ts generation are handled by build:tsc.
+                        transpileOnly: true,
+                    },
+                },
             },
         ],
     },
@@ -28,7 +35,7 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'umd'),
         publicPath: ASSET_PATH,
-        library: 'EpiCPyodideService',
+        library: 'EpiCOnnxService',
         libraryTarget: 'umd',
     },
     resolve: {
@@ -37,6 +44,6 @@ module.exports = {
             '#root': path.resolve(__dirname, './'),
             '#types': path.resolve(__dirname, 'src', 'types'),
         },
-        symlinks: false
+        symlinks: true
     },
 }
