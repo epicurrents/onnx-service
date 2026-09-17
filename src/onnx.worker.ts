@@ -11,7 +11,9 @@ import { type WorkerMessage } from '@epicurrents/core/types'
 import { type OnnxRunProgress, type OnnxRunResponse } from './types'
 import { sleep, validateCommissionProps } from '@epicurrents/core/util'
 
-ort.env.wasm.wasmPaths = typeof __webpack_public_path__ === 'string' ? __webpack_public_path__ : ''
+// The runtime's WebAssembly files are served by the host, which passes their location in the setup
+// commission; until then, resolve them against the document's own base.
+ort.env.wasm.wasmPaths = ''
 
 const SCOPE = "onnx.worker"
 

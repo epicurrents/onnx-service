@@ -16,6 +16,15 @@ import {
     type OnnxService,
 } from '#types'
 
+/**
+ * Path of the worker beside this module in the build output.
+ *
+ * Held in a constant so the bundler does not read it: the ONNX runtime loads its WebAssembly at run
+ * time from a path the host supplies, so the worker must stay a file of its own rather than being
+ * inlined into this module, as every other package in the family does with its worker.
+ */
+const WORKER_PATH = './onnx.worker.js'
+
 const SCOPE = 'OnnxService'
 
 export default abstract class GenericOnnxService extends GenericService implements OnnxService {
@@ -33,11 +42,7 @@ export default abstract class GenericOnnxService extends GenericService implemen
         }
         const overrideWorker = window.__EPICURRENTS__?.RUNTIME?.getWorkerOverride('onnx')
         const worker = overrideWorker ? overrideWorker : new Worker(
-            new URL(
-                /* webpackChunkName: 'onnx.worker' */
-                `./onnx.worker`,
-                import.meta.url
-            ),
+            new URL(WORKER_PATH, import.meta.url),
             { type: 'module' }
         )
         Log.registerWorker(worker)
@@ -157,11 +162,9 @@ export default abstract class GenericOnnxService extends GenericService implemen
     }
 
     async setupWorker (config?: { rootPath?: string }): Promise<SetupWorkerResponse> {
-        const scriptPath = typeof __webpack_public_path__ === 'string' && __webpack_public_path__
-                           ? __webpack_public_path__
-                           : window.location.pathname
-        // Default to a folder called 'onnx' in the asset path or root (HTML) file path.
-        // WebWorker doesn't have access to window.location, so we have to do this here.
+        // Default to a folder called 'onnx' beside the document. The worker has no access to
+        // window.location, so the path is resolved here and passed in the setup commission.
+        const scriptPath = window.location.pathname
         const onnxDir = config?.rootPath || scriptPath.substring(0, scriptPath.lastIndexOf('/')) + '/onnx'
         const commission = this._commissionWorker(
             'setup-worker',

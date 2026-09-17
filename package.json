@@ -13,27 +13,22 @@
     "./workers/*": "./umd/*",
     "./umd/*": "./umd/*"
   },
-  "imports": {
-    "#root/*": "./dist/*",
-    "#*": "./dist/src/*"
-  },
   "files": [
     "dist/*",
     "umd/*.js",
-    "umd/*.LICENSE.txt",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "build": "npm run build:umd && npm run build:tsc",
-    "build:tsc": "tsc && tsconfig-replace-paths --project tsconfig.paths.json",
-    "build:umd": "webpack --progress --stats-error-details --config webpack.config.js",
-    "dev": "webpack serve --progress --config webpack.dev.js",
+    "build": "npm run build:workers && npm run build:tsc",
+    "build:lib": "vite build",
+    "build:tsc": "npm run build:lib && npm run build:types",
+    "build:types": "epicurrents-build-types",
+    "build:workers": "node scripts/build-workers.mjs",
     "lint": "npm run lint:src",
     "lint:src": "eslint src",
     "prepack": "npm run build",
     "release": "npm publish --access=public",
-    "serve": "webpack serve --progress --config webpack.dev.js",
     "test": "npm run test:unit",
     "test:unit": "vitest run --coverage"
   },
@@ -50,22 +45,17 @@
     "@typescript-eslint/eslint-plugin": "^6.7.2",
     "@typescript-eslint/parser": "^6.7.2",
     "asymmetric-io-mutex": "^1.0.0",
-    "circular-dependency-plugin": "^5.2.2",
-    "dotenv": "^16.3.1",
+    "esbuild": "^0.28.2",
     "eslint": "^8.49.0",
+    "onnxruntime-web": "^1.14.0",
     "scoped-event-log": "^3.2.0",
-    "ts-loader": "^9.5.1",
-    "tsconfig-replace-paths": "^0.0.14",
     "typescript": "^5.7.0",
-    "webpack": "^5.73.0",
-    "webpack-bundle-analyzer": "^4.5.0",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^5.2.2",
-    "webpack-merge": "^5.8.0"
+    "vite": "^7.3.1"
   },
   "peerDependencies": {
     "@epicurrents/core": "^1.0.0",
     "asymmetric-io-mutex": "^1.0.0",
+    "onnxruntime-web": "^1.14.0",
     "scoped-event-log": "^3.2.0"
   }
 }
