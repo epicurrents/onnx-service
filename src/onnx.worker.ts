@@ -7,9 +7,9 @@
 
 import * as ort from 'onnxruntime-web'
 import { Log } from 'scoped-event-log'
-import { type WorkerMessage } from '@epicurrents/core/dist/types'
+import { type WorkerMessage } from '@epicurrents/core/types'
 import { type OnnxRunProgress, type OnnxRunResponse } from './types'
-import { sleep, validateCommissionProps } from '@epicurrents/core/dist/util'
+import { sleep, validateCommissionProps } from '@epicurrents/core/util'
 
 ort.env.wasm.wasmPaths = typeof __webpack_public_path__ === 'string' ? __webpack_public_path__ : ''
 

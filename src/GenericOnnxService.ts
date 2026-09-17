@@ -6,7 +6,7 @@
  */
 
 import { GenericService } from '@epicurrents/core'
-import { type SetupWorkerResponse, type WorkerResponse } from '@epicurrents/core/dist/types/service'
+import { type SetupWorkerResponse, type WorkerResponse } from '@epicurrents/core/types'
 import { Log } from 'scoped-event-log'
 import {
     type LoadingState,

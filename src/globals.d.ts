@@ -19,7 +19,7 @@ type EpicurrentsGlobal = {
      * @remarks
      * This property is required by the core application.
      */
-    RUNTIME: import('@epicurrents/core/dist/types/application').StateManager | null
+    RUNTIME: import('@epicurrents/core/types').StateManager | null
 }
 declare global {
     /** Path where WebPack serves its public assets (js) from. */

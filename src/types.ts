@@ -5,8 +5,11 @@
  * @license    Apache-2.0
  */
 
-import { AssetService } from "@epicurrents/core/dist/types"
-import { SetupWorkerResponse, WorkerResponse } from "@epicurrents/core/dist/types/service"
+import type {
+    AssetService,
+    SetupWorkerResponse,
+    WorkerResponse,
+} from "@epicurrents/core/types"
 
 /**
  * Model loading state.
